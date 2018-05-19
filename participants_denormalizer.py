@@ -1,14 +1,9 @@
-# importing csv module
 import csv
-import itertools
 
-# csv file name
 input_filename = "input/gun-violence-data.csv"
-# filename = "input/excel_preview.csv"
 output_victims_filename = "output/victims.csv"
 output_subjects_filename = "output/subjects.csv"
 
-# initializing the titles and rows list
 fields = []
 rows = []
 
@@ -23,14 +18,6 @@ def split_row_to_victims_and_subjects(row, fields):
         splitted = [x for x in row[field_index].split("||")]
         if len(splitted) < 2:
             return dict()
-        # dictionary = dict()
-        # for x in splitted:
-        #     lele = x.split('::')
-        #     if len(lele) < 2:
-        #         xxxxx = 0
-        #     l0 = lele[0]
-        #     l1 = lele[1]
-        #     dictionary[l0] = l1
         dictionary = dict((x.split('::')[0], x.split('::')[1]) for x in splitted)
         return dictionary
 
@@ -85,7 +72,6 @@ with open(input_filename, 'r', encoding='utf-8') as csvfile:
     v_id, s_id = 1, 1
 
     for row in csvreader:
-        # rows.append(row)
         victims, subjects = split_row_to_victims_and_subjects(row, fields)
         for v in victims:
             csvwriter_victims.writerow([str(v_id)] + v)
