@@ -26,6 +26,8 @@ output_victims_filename = "output/victims.csv"
 output_subjects_filename = "output/subjects.csv"
 output_locations_filename = "output/locations.csv"
 output_vic_to_sub_filename = "output/vic_to_sub.csv"
+output_guns_filename = "output/guns.csv"
+output_vic_to_gun_filename = "output/vic_to_gun.csv"
 # output_gun_violence_filename = "output/gun-violence-data-AFTER_GUNS.csv"
 
 fields = []
@@ -35,12 +37,16 @@ out_file_victims = open(output_victims_filename, 'w', encoding='utf-8', newline=
 out_file_subjects = open(output_subjects_filename, 'w', encoding='utf-8', newline='\n')
 out_file_locations = open(output_locations_filename, 'w', encoding='utf-8', newline='\n')
 out_file_vic_to_sub = open(output_vic_to_sub_filename, 'w', encoding='utf-8', newline='\n')
+out_file_guns = open(output_guns_filename, 'w', encoding='utf-8', newline='\n')
+out_file_vic_to_gun = open(output_vic_to_gun_filename, 'w', encoding='utf-8', newline='\n')
 # out_file_gun_violence = open(output_gun_violence_filename, 'w', encoding='utf-8', newline='\n')
 
 csvwriter_victims = csv.writer(out_file_victims)
 csvwriter_subjects = csv.writer(out_file_subjects)
 csvwriter_locations = csv.writer(out_file_locations)
 csvwriter_vic_to_sub = csv.writer(out_file_vic_to_sub)
+csvwriter_guns = csv.writer(out_file_guns)
+csvwriter_vic_to_gun = csv.writer(out_file_vic_to_gun)
 # csvwriter_gvd = csv.writer(out_file_gun_violence)
 
 
@@ -93,11 +99,36 @@ def split_row_to_victims_and_subjects(row, fields):
             subjects.append(subject)
     return victims, subjects
 
+
+def split_row_to_guns(row, fields):
+    def create_gun_row(key, i_id, g_stolen, g_type):
+        stolen = extract_by_key_if_present(key, g_stolen)
+        type = extract_by_key_if_present(key, g_type)
+        return [i_id, stolen, type]
+
+    i_id_index = fields.index("incident_id")
+    g_stolen_index = fields.index("gun_stolen")
+    g_type_index = fields.index("gun_type")
+
+    i_id = row[i_id_index]
+    g_stolen_list = split_field(g_stolen_index, row)
+    g_type_list = split_field(g_type_index, row)
+
+    guns = []
+    for i, participant_type in g_type_list.items():
+        gun = create_gun_row(i, i_id, g_stolen_list, g_type_list)
+        guns.append(gun)
+    return guns
+    pass
+
+
 # return [i_id, age, gender, name, is_unharmed, is_injured, is_killed, is_arrested]
 csvwriter_victims.writerow(["victim_id", "location_id", "date", "incident_id", "age", "gender", "name", "unharmed", "injured", "killed", "arrested"])
 csvwriter_subjects.writerow(["subject_id", "incident_id", "age", "gender", "name", "unharmed", "injured", "killed", "arrested"])
-csvwriter_locations.writerow(["id", "state", "cityCounty", "address"])
+csvwriter_locations.writerow(["id", "state", "city_county", "address"])
 csvwriter_vic_to_sub.writerow(["id", "victim_id", "subject_id"])
+csvwriter_guns.writerow(["gun_id", "incident_id", "gun_stolen", "gun_type"])
+csvwriter_vic_to_gun.writerow(["id", "vic_id", "gun_id"])
 
 
 def make_location(row, fields, location_index):
@@ -136,26 +167,38 @@ with open(input_filename, 'r', encoding='utf-8') as csvfile:
     v_id, s_id = 1, 1
     location_index, locations_pool = {'val': 1}, []
     vic_to_sub_index = 1
+    vic_to_gun_index = 1
+    g_id = 1
 
     for row in csvreader:
         victims, subjects = split_row_to_victims_and_subjects(row, fields)
+        guns = split_row_to_guns(row, fields)
         location = make_location(row, fields, location_index)
         date = make_date(row[fields.index('date')])
         for s in subjects:
             csvwriter_subjects.writerow([str(s_id)] + s)
             s.append(s_id)
             s_id += 1
+        for g in guns:
+            csvwriter_guns.writerow([str(g_id)] + g)
+            g.append(g_id)
+            g_id += 1
         for v in victims:
             csvwriter_victims.writerow([str(v_id), str(location.id), date] + v)
             for s in subjects:
                 csvwriter_vic_to_sub.writerow([vic_to_sub_index, v_id, s[-1]])
                 vic_to_sub_index += 1
+            for g in guns:
+                csvwriter_vic_to_gun.writerow([vic_to_gun_index, v_id, g[-1]])
+                vic_to_gun_index += 1
             v_id += 1
 
     out_file_victims.close()
     out_file_subjects.close()
     out_file_locations.close()
     out_file_vic_to_sub.close()
+    out_file_guns.close()
+    out_file_vic_to_gun.close()
     print("Total no. of rows: %d" % (csvreader.line_num))
 
 print('Field names are:' + ', '.join(field for field in fields))

@@ -2,14 +2,17 @@ import csv
 
 input_filename = "input/gun-violence-data.csv"
 output_guns_filename = "output/guns.csv"
+output_vic_to_gun_filename = "output/vic_to_gun.csv"
 output_gun_violence_filename = "output/gun-violence-data-AFTER_GUNS.csv"
 
 fields = []
 rows = []
 
 out_file_guns = open(output_guns_filename, 'w', encoding='utf-8', newline='\n')
+out_file_vic_to_gun = open(output_vic_to_gun_filename, 'w', encoding='utf-8', newline='\n')
 out_file_gun_violence = open(output_gun_violence_filename, 'w', encoding='utf-8', newline='\n')
 csvwriter_guns = csv.writer(out_file_guns)
+csvwriter_vic_to_gun = csv.writer(out_file_vic_to_gun)
 csvwriter_gvd = csv.writer(out_file_gun_violence)
 
 
@@ -60,6 +63,7 @@ with open(input_filename, 'r', encoding='utf-8') as csvfile:
             g_id += 1
 
     out_file_guns.close()
+    out_file_vic_to_gun.close()
     print("Total no. of rows: %d" % (csvreader.line_num))
 
 print('Field names are:' + ', '.join(field for field in fields))
