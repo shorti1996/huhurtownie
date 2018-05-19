@@ -2,12 +2,15 @@ import csv
 
 input_filename = "input/gun-violence-data.csv"
 output_guns_filename = "output/guns.csv"
+output_gun_violence_filename = "output/gun-violence-data-AFTER_GUNS.csv"
 
 fields = []
 rows = []
 
 out_file_guns = open(output_guns_filename, 'w', encoding='utf-8', newline='\n')
+out_file_gun_violence = open(output_gun_violence_filename, 'w', encoding='utf-8', newline='\n')
 csvwriter_guns = csv.writer(out_file_guns)
+csvwriter_gvd = csv.writer(out_file_gun_violence)
 
 
 def split_row_to_guns(row, fields):
